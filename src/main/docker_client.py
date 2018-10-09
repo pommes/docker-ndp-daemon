@@ -47,7 +47,11 @@ class DockerClient:
             for jsonEvent in self._events:
                 event = json.loads(jsonEvent)
                 if event['Type'] == 'network' and event['Action'] == 'connect':
-                    self._handle_network_connect_event(event)
+                    try:
+                        self._handle_network_connect_event(event)
+                    except Exception as ex:
+                        logger.error("Error during event processing: {}".format(ex))
+
         except Exception as ex:
             if self._terminate:
                 logger.warning("Error during termination: {}".format(ex))
