@@ -11,6 +11,6 @@ config = {
     # The output format of the logger
     ConfigEnum.LOGGER_FORMAT: "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     # Logging output is this level or higher - DEBUG (lowest), INFO, WARN, ERROR (highest)
-    ConfigEnum.LOGGER_LOGLEVEL: logging.DEBUG
+    ConfigEnum.LOGGER_LOGLEVEL: logging.INFO
 }
 

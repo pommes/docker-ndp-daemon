@@ -1,4 +1,5 @@
 import logging
+import sys
 from config_enum import ConfigEnum
 from config import config
 from docker_ndp_proxy import DockerIpv6NeighbourDiscoverer
@@ -19,3 +20,4 @@ try:
 
 except Exception as ex:
     logger.error("FATAL: {}".format(ex))
+    sys.exit(1)
