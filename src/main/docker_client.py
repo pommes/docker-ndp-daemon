@@ -1,6 +1,7 @@
 import logging
 import docker
 import json
+import signal
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,8 @@ class DockerClient:
     # Properties
     _socket_file = None
     _client = None
+    _events = None
+    _terminate = False
 
     # Getters / Setters
 
@@ -24,6 +27,8 @@ class DockerClient:
     # Constructor
     def __init__(self, socket_file):
         assert socket_file, "socket_file not set!"
+        signal.signal(signal.SIGINT, self._handle_termination)
+        signal.signal(signal.SIGTERM, self._handle_termination)
         self._socket_file = socket_file
 
         logger.info("Connecting ...")
@@ -37,11 +42,26 @@ class DockerClient:
     def listen_network_connect_events(self):
         logger.info("Listening for Events ...")
 
-        for jsonEvent in self._client.events():
-            event = json.loads(jsonEvent)
-            if event['Type'] == 'network' and event['Action'] == 'connect':
-                self._handle_network_connect_event(event)
+        try:
+            self._events = self._client.events()
+            for jsonEvent in self._events:
+                event = json.loads(jsonEvent)
+                if event['Type'] == 'network' and event['Action'] == 'connect':
+                    self._handle_network_connect_event(event)
+        except Exception as ex:
+            if self._terminate:
+                logger.warning("Error during termination: {}".format(ex))
+            else:
+                raise ex
 
     # Handler for all net work connection events
     def _handle_network_connect_event(self, event):
         pass
+
+    # Shut
+    def _handle_termination(self, signum, frame):
+        logger.info("Signal '{}' received. Shutting down ...".format(signum))
+        self._terminate = True
+        self._events.close()
+        self._client.close()
+
