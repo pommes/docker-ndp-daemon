@@ -1,8 +1,8 @@
 import logging
 import sys
-from config_enum import ConfigEnum
+from configkeys import ConfigKey
 from config import config
-from docker_ndp_proxy import DockerIpv6NeighbourDiscoverer
+from ndp import DockerNdpDaemon
 
 logger = logging.getLogger(__name__)
 
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 # Main
 #############
 
-logging.basicConfig(format=config[ConfigEnum.LOGGER_FORMAT])
-logging.root.setLevel(config[ConfigEnum.LOGGER_LOGLEVEL])
+logging.basicConfig(format=config[ConfigKey.LOGGER_FORMAT])
+logging.root.setLevel(config[ConfigKey.LOGGER_LOGLEVEL])
 
 try:
-    docker_client = DockerIpv6NeighbourDiscoverer(
-        config[ConfigEnum.DOCKER_SOCKET_FILE],
-        config[ConfigEnum.HOST_GATEWAY_NETWORK_INTERFACE])
+    daemon = DockerNdpDaemon(
+        config[ConfigKey.DOCKER_SOCKET_URL],
+        config[ConfigKey.HOST_GATEWAY_NETWORK_INTERFACE])
 
 except Exception as ex:
     logger.error("FATAL: {}".format(ex))

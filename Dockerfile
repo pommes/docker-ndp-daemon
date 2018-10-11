@@ -1,4 +1,4 @@
-# Dockerfile Example for docker-ndp-proxy
+# Dockerfile Example for dockerndp-ndp-proxy
 FROM        ubuntu:18.04
 
 # Install required packages
@@ -10,7 +10,7 @@ RUN         apt-get update \
                sudo
 RUN         pip3 install docker
 
-# Download docker-ndp-proxy
+# Download dockerndp-ndp-proxy
 WORKDIR     /srv
 RUN         git clone https://github.com/pommes/docker-ndp-proxy.git ipv6-enabler
 
