@@ -80,8 +80,8 @@ class DockerEventDaemon:
     def _handle_network_connect_event(self, event: dict):
         pass
 
-    # Shut
-    def _handle_termination(self, signum):
+    # Shutdown app (Param _ (frame) is not needed.
+    def _handle_termination(self, signum, _):
         logger.info("Signal '{}' received. Shutting down ...".format(signum))
         self._terminate = True
         self._events.close()

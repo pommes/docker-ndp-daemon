@@ -109,7 +109,7 @@ class DockerEventDaemonTest(unittest.TestCase):
         for curr_signal in signals:
             with self.subTest():
                 self._daemon.listen_network_connect_events()
-                self._daemon._handle_termination(curr_signal)
+                self._daemon._handle_termination(curr_signal, None)
 
                 self.assertTrue(mock_events.called)
                 self.assertTrue(mock_close.called)
