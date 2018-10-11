@@ -12,9 +12,9 @@ RUN         pip3 install docker
 
 # Download dockerndp-ndp-proxy
 WORKDIR     /srv
-RUN         git clone https://github.com/pommes/docker-ndp-proxy.git ipv6-enabler
+RUN         git clone https://github.com/pommes/docker-ndp-daemon.git dnd
 
 # Start daemon
-WORKDIR      /srv/ipv6-enabler/src/main
+WORKDIR      /srv/dnd/app
 ENTRYPOINT   ["/usr/bin/python3"]
-CMD          ["__init__.py", "tee", "-a", "/var/log/ipv6-enabler.log"]
+CMD          ["main.py", "tee", "-a", "/var/log/dnd.log"]
