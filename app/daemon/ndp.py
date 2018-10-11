@@ -1,5 +1,5 @@
 import logging
-from events import DockerEventDaemon
+from .events import DockerEventDaemon
 from subprocess import Popen, PIPE
 logger = logging.getLogger(__name__)
 

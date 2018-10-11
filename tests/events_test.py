@@ -1,18 +1,16 @@
 import unittest
 import mock
-from mock import PropertyMock
 import logging
 from docker import DockerClient
 from docker.errors import DockerException
 from subprocess import Popen
 import signal
-from events import DockerEventDaemon
-from configkeys import ConfigKey
-from config import config
+from daemon.events import DockerEventDaemon
+import config
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format=config[ConfigKey.LOGGER_FORMAT])
-logging.root.setLevel(config[ConfigKey.LOGGER_LOGLEVEL])
+logging.basicConfig(format=config.logger.format)
+logging.root.setLevel(config.logger.level)
 
 
 def error_during_terminate():
