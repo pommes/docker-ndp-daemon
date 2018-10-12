@@ -22,9 +22,7 @@ def error_during_terminate():
 class DockerEventDaemonTest(unittest.TestCase):
 
     def setUp(self):
-        """Sets _client with mocked
-
-        :return:
+        """Sets _daemon with mocked :class:`DockerClient``
         """
         with mock.patch.object(DockerClient, '__init__', return_value=None):
             self._daemon = DockerEventDaemon("socket")
@@ -65,7 +63,8 @@ class DockerEventDaemonTest(unittest.TestCase):
         mock_events.return_value = [
             '{"Type":"network","Action":"connect","Actor":{"ID":"29985997bf53d5933fea12ac6c40ccd6240013b88f940270bfd1d16a0f5fb5bd","Attributes":{"container":"534280333f1f64f7cfeb56dde3a76788b2961abc807b3833705fa2d4fcee2f40","name":"bridge","type":"bridge"}},"scope":"local","time":1539202002,"timeNano":1539202002835354153}',
             '{"Type":"network","Action":"disconnect","Actor":{"ID":"29985997bf53d5933fea12ac6c40ccd6240013b88f940270bfd1d16a0f5fb5bd","Attributes":{"container":"3fc260a2e5a99df767b6ebfe0506d598b7502d1be38f82dc5513dcd25bc62c12","name":"bridge","type":"bridge"}},"scope":"local","time":1539202263,"timeNano":1539202263993893537}',
-            '{"Type":"network","Action":"connect","Actor":{"ID":"29985997bf53d5933fea12ac6c40ccd6240013b88f940270bfd1d16a0f5fb5bd","Attributes":{"container":"534280333f1f64f7cfeb56dde3a76788b2961abc807b3833705fa2d4fcee2f40","name":"bridge","type":"bridge"}},"scope":"local","time":1539202002,"timeNano":1539202002835354153}']
+            '{"Type":"network","Action":"connect","Actor":{"ID":"29985997bf53d5933fea12ac6c40ccd6240013b88f940270bfd1d16a0f5fb5bd","Attributes":{"container":"534280333f1f64f7cfeb56dde3a76788b2961abc807b3833705fa2d4fcee2f40","name":"bridge","type":"bridge"}},"scope":"local","time":1539202002,"timeNano":1539202002835354153}'
+        ]
         mock_event_handler.return_value = 42
         self._daemon.listen_network_connect_events()
 

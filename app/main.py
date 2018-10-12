@@ -1,4 +1,4 @@
-if __name__ == "__main__":
+def main():
     import sys
     import logging
     from daemon import DockerNdpDaemon
@@ -18,5 +18,8 @@ if __name__ == "__main__":
     except Exception as ex:
         logger.critical("CRITICAL: {}".format(ex))
         sys.exit(1)
-else:
-    raise ImportError("Run this file directly, don't import it!")
+
+
+if __name__ == "__main__":
+    main()
+
