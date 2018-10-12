@@ -34,7 +34,9 @@ class DockerNdpDaemon(DockerEventDaemon):
         container = self._client.containers.get(container_id)
         logger.debug("Event: Container '{}' connected to dockerndp network."
                      .format(container.name))
+        self._add_container_to_ipv6_ndp_proxy(container)
 
+    def _add_container_to_ipv6_ndp_proxy(self, container):
         ipv6_address = self._try_fetch_ipv6_address(container)
         if not ipv6_address:
             logger.info("Ignoring container '{}'. It has no IPv6 address.".format(container.name))
@@ -86,4 +88,4 @@ class DockerNdpDaemon(DockerEventDaemon):
         # Adds all running containers to the IPv6 neighbour discovery proxy
         logger.info("Adding all runnning containers to IPv6 ndp proxy...")
         for container in self._client.containers.list():
-            self._try_fetch_ipv6_address(container)
+            self._add_container_to_ipv6_ndp_proxy(container)

@@ -2,7 +2,7 @@ import unittest
 import mock
 import config
 import logging
-from app import main
+import main
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format=config.logger.format)

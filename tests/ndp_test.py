@@ -38,39 +38,39 @@ class DockerNdpDaemonTest(unittest.TestCase):
             self.assertTrue(mock_client.called)
 
     @mock.patch.object(docker.models.containers.ContainerCollection, 'get')
-    @mock.patch.object(DockerNdpDaemon, '_try_fetch_ipv6_address', return_value="IPv6")
-    @mock.patch.object(DockerNdpDaemon, '_add_ipv6_neigh_proxy', return_value=(0, "COMMAND", "ERROR"))
-    def test_handle_network_connect_event__ok(self, mock_add_ip, mock_add_proxy, mock_containers):
+    @mock.patch.object(DockerNdpDaemon, '_add_container_to_ipv6_ndp_proxy')
+    def test_handle_network_connect_event__ok(self, mock_add_container, mock_containers):
         """Tests if the container ID was fetched out of the right element branch and IPv6 was returend and passed."""
         event = {'Actor': {'Attributes': {'container': 42}}}
         self._daemon._handle_network_connect_event(event)
         self.assertTrue(mock_containers.called)
+        self.assertTrue(mock_add_container.called)
+
+    @mock.patch.object(DockerNdpDaemon, '_try_fetch_ipv6_address', return_value="IPv6")
+    @mock.patch.object(DockerNdpDaemon, '_add_ipv6_neigh_proxy', return_value=(0, "COMMAND", None))
+    def test_add_container_to_ipv6_ndp_proxy__ok(self, mock_add_ip, mock_add_proxy):
+        """Tests if IPv6 was returend and passed to 'add' method."""
+        self._daemon._add_container_to_ipv6_ndp_proxy(Container())
         self.assertTrue(mock_add_proxy.called)
         self.assertTrue(mock_add_ip.called)
-        self.assertEquals(("IPv6",), mock_add_ip.call_args[0])
+        self.assertEqual(("IPv6",), mock_add_ip.call_args[0])
 
-    @mock.patch.object(docker.models.containers.ContainerCollection, 'get')
     @mock.patch.object(DockerNdpDaemon, '_try_fetch_ipv6_address', return_value=None)
     @mock.patch.object(DockerNdpDaemon, '_add_ipv6_neigh_proxy')
-    def test_handle_network_connect_event__ok_no_ipv6_address(self, mock_add_ip, mock_add_proxy, mock_containers):
+    def test_add_container_to_ipv6_ndp_proxy__ok_no_ipv6_address(self, mock_add_ip, mock_add_proxy):
         """Tests if the method returns if no ipv6 address was found"""
-        event = {'Actor': {'Attributes': {'container': 42}}}
-        self._daemon._handle_network_connect_event(event)
-        self.assertTrue(mock_containers.called)
+        self._daemon._add_container_to_ipv6_ndp_proxy(Container())
         self.assertTrue(mock_add_proxy.called)
         self.assertFalse(mock_add_ip.called)  # Must not be called because method returned before
 
-    @mock.patch.object(docker.models.containers.ContainerCollection, 'get')
     @mock.patch.object(DockerNdpDaemon, '_try_fetch_ipv6_address', return_value="IPv6")
     @mock.patch.object(DockerNdpDaemon, '_add_ipv6_neigh_proxy', return_value=(1, "COMMAND", "ERROR"))
-    def test_handle_network_connect_event__fail_add_proxy_returns_1(self, mock_add_ip, mock_add_proxy, mock_containers):
+    def test_add_container_to_ipv6_ndp_proxy__fail_add_proxy_returns_1(self, mock_add_ip, mock_add_proxy):
         """Tests when called method _try_fetch_ipv6_address returned code != 0"""
         try:
-            event = {'Actor': {'Attributes': {'container': 42}}}
-            self._daemon._handle_network_connect_event(event)
+            self._daemon._add_container_to_ipv6_ndp_proxy(Container())
             self.fail("ValueError expected")
         except ValueError:
-            self.assertTrue(mock_containers.called)
             self.assertTrue(mock_add_proxy.called)
             self.assertTrue(mock_add_ip.called)
 
@@ -79,7 +79,7 @@ class DockerNdpDaemonTest(unittest.TestCase):
     def test_try_fetch_ipv6_address__ok(self, mock_container, mock_ipv6_address):
         """Test if the method returns a found IPv6 address"""
         ipv6_address = self._daemon._try_fetch_ipv6_address(mock_container)
-        self.assertEquals("IPv6", ipv6_address)
+        self.assertEqual("IPv6", ipv6_address)
         self.assertTrue(mock_ipv6_address.called)
 
     @mock.patch.object(DockerNdpDaemon, 'fetch_ipv6_address', return_value=(0, None, None))
@@ -87,7 +87,7 @@ class DockerNdpDaemonTest(unittest.TestCase):
     def test_try_fetch_ipv6_address__ok_no_ip_found(self, mock_container, mock_ipv6_address):
         """Test if the method returns None if no IPv6 address was found"""
         ipv6_address = self._daemon._try_fetch_ipv6_address(mock_container)
-        self.assertEquals(None, ipv6_address)
+        self.assertEqual(None, ipv6_address)
         self.assertTrue(mock_ipv6_address.called)
 
     @mock.patch.object(DockerNdpDaemon, 'fetch_ipv6_address', return_value=(1, None, "ERROR"))
@@ -97,7 +97,7 @@ class DockerNdpDaemonTest(unittest.TestCase):
         try:
             self._daemon._try_fetch_ipv6_address(mock_container)
             self.fail("ValueError expected!")
-        except ValueError as ex:
+        except ValueError:
             self.assertTrue(mock_ipv6_address.called)
 
     @mock.patch.object(Popen, 'communicate', return_value=(bytearray("\n", "utf-8"), bytearray("\n", "utf-8")))
@@ -119,12 +119,13 @@ class DockerNdpDaemonTest(unittest.TestCase):
         self.assertTrue(mock_communicate.called)
 
     @mock.patch.object(docker.models.containers.ContainerCollection, 'list')
-    @mock.patch.object(DockerNdpDaemon, '_try_fetch_ipv6_address')
-    def test_add_all_existing_containers_to_neigh_proxy_ok(self, mock_add_proxy, mock_containers):
+    @mock.patch.object(DockerNdpDaemon, '_add_container_to_ipv6_ndp_proxy')
+    def test_add_all_existing_containers_to_neigh_proxy_ok(self, mock_add_container, mock_containers):
         """Tests if adding ipv6 to ndp proxy is called for all active containers"""
         mock_containers.return_value = [Container(), Container(), Container()]
         self._daemon._add_all_existing_containers_to_neigh_proxy()
-        self.assertEqual(3, mock_add_proxy.call_count)
+        self.assertEqual(3, mock_add_container.call_count)
+        self.assertTrue(mock_add_container.called)
 
 
 if __name__ == '__main__':
