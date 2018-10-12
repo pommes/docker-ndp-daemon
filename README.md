@@ -1,4 +1,5 @@
 # docker-ndp-daemon
+> Release v1-beta.1
 
 Small python daemon that gives new started docker containers IPv6 internet connectivity by automatically adding their IPv6 addresses to the NDP proxy table.
 
