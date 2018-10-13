@@ -76,16 +76,21 @@ class DockerEventDaemon:
             else:
                 raise ex
 
+    def shutdown(self):
+        """shuts down the daemon."""
+        logger.info("Shutting down ...")
+        self._terminate = True
+        self._events.close()
+        self._client.close()
+
     # Handler for all net work connection client
     def _handle_network_connect_event(self, event: dict):
         pass
 
     # Shutdown app (Param _ (frame) is not needed.
     def _handle_termination(self, signum, _):
-        logger.info("Signal '{}' received. Shutting down ...".format(signum))
-        self._terminate = True
-        self._events.close()
-        self._client.close()
+        logger.info("Signal '{}' received.".format(signum))
+        self.shutdown()
 
     # Fetches IPv6 address
     @staticmethod
