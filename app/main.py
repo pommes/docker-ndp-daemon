@@ -1,9 +1,9 @@
 def init_app():
     import sys
     import logging
-    from urllib3.exceptions import ReadTimeoutError
     from daemon import DockerNdpDaemon
     from daemon import DaemonException
+    from daemon import DaemonTimeoutException
 
     logger = logging.getLogger(__name__)
     daemon = None
@@ -18,7 +18,7 @@ def init_app():
             config.docker.socket,
             config.host.gateway)
 
-    except ReadTimeoutError as ex:
+    except DaemonTimeoutException as ex:
         logger.debug(ex)
         logger.info("Docker connection read timed out. Reconnecting ...")
         if daemon:

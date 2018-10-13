@@ -4,6 +4,8 @@ import json
 import signal
 from subprocess import Popen, PIPE
 from daemon.exceptions import DaemonException
+from daemon.exceptions import DaemonTimeoutException
+from urllib3.exceptions import ReadTimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +72,8 @@ class DockerEventDaemon:
                 event = json.loads(jsonEvent)
                 if event['Type'] == 'network' and event['Action'] == 'connect':
                     self._handle_network_connect_event(event)
-
+        except ReadTimeoutError as ex:
+            raise DaemonTimeoutException(parent=ex)
         except Exception as ex:
             if self._terminate:
                 logger.warning("Error during termination: {}".format(ex))

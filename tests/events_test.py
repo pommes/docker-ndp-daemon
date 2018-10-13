@@ -7,6 +7,8 @@ from subprocess import Popen
 import signal
 from daemon.events import DockerEventDaemon
 from daemon.exceptions import DaemonException
+from daemon.exceptions import DaemonTimeoutException
+from urllib3.exceptions import ReadTimeoutError
 import config
 
 logger = logging.getLogger(__name__)
@@ -14,9 +16,15 @@ logging.basicConfig(format=config.logger.format)
 logging.root.setLevel(config.logger.level)
 
 
-def error_during_terminate():
+def side_effect_error_during_terminate():
     def raise_error():
-        raise ValueError("Test error during termination...")
+        raise ValueError("Test error during termination.")
+    return raise_error()
+
+
+def side_effect_socket_read_timeout():
+    def raise_error():
+        raise ReadTimeoutError(url=None, pool=None, message="Read timeout during listening for events.")
     return raise_error()
 
 
@@ -74,23 +82,25 @@ class DockerEventDaemonTest(unittest.TestCase):
         self.assertEqual(2, mock_event_handler.call_count,
                          "Only 2 of the 3 client are of Type 'network' and Action 'connect'.)")
 
-    @mock.patch.object(DockerClient, 'events', side_effect=error_during_terminate)
+    @mock.patch.object(DockerClient, 'events', side_effect=side_effect_error_during_terminate)
     def test_listen_network_connect_events__fail_exception(self, mock_events):
         try:
             self._daemon.listen_network_connect_events()
-            self.fail("Exception expected.")
+            self.fail("DaemonException expected.")
         except DaemonException as ex:
             logger.info("{}: {}".format(ex.__class__, ex))
-            pass
+            self.assertTrue(mock_events.called)
 
-    @mock.patch.object(DockerClient, 'events', side_effect=error_during_terminate)
+    @mock.patch.object(DockerClient, 'events', side_effect=side_effect_socket_read_timeout)
     def test_listen_network_connect_events__fail_timeout(self, mock_events):
+        """Tests the reaction when docker client throws a timeout excpetion."""
         try:
             self._daemon.listen_network_connect_events()
-            self.fail("Exception expected.")
+            self.fail("DaemonTimeoutException expected.")
         except DaemonException as ex:
             logger.info("{}: {}".format(ex.__class__, ex))
-            pass
+            self.assertIs(ex.__class__, DaemonTimeoutException)
+            self.assertTrue(mock_events.called)
 
     @mock.patch('docker.models.containers.Container')
     @mock.patch.object(Popen, "communicate",

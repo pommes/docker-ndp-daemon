@@ -25,3 +25,8 @@ class DaemonException(Exception):
 
     def has_parent(self):
         return self.parent is not None
+
+
+class DaemonTimeoutException(DaemonException):
+    """Special :class:`DaemonException` that is raised when a timeout was detected."""
+    pass
