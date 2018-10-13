@@ -8,6 +8,8 @@ define check_uncommit_changes
 	git diff --quiet
 	if [ $? -ne 0 ]; then
 	  $(error branch '$1' has uncommitted changes.)
+	else
+	  echo "No local changes found on branch '$1'."
 	fi
 endef
 
