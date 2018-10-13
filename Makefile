@@ -5,12 +5,9 @@ sed        = gsed
 
 # $1: branch
 define check_uncommit_changes
-	git diff --quiet
-	if [ $? -ne 0 ]; then
-	  $(error branch '$1' has uncommitted changes.)
-	else
-	  echo "No local changes found on branch '$1'."
-	fi
+	@git diff --quiet \
+	  && echo "No local changes found on branch '$1'" \
+	  || (>&2 echo "branch '$1' has uncommitted local changes."); exit 1
 endef
 
 # Check that given variables are set and all have non-empty values,
