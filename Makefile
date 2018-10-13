@@ -7,7 +7,7 @@ sed        = gsed
 define check_uncommit_changes
 	@git diff --quiet \
 	  && echo "No local changes found on branch '$1'" \
-	  || (>&2 echo "branch '$1' has uncommitted local changes."); exit 1
+	  || (>&2 echo "branch '$1' has uncommitted local changes."; exit 1)
 endef
 
 # Check that given variables are set and all have non-empty values,
