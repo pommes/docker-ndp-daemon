@@ -3,6 +3,7 @@ import mock
 import config
 import logging
 from daemon import DockerNdpDaemon
+from daemon import DaemonException
 import docker
 from docker import DockerClient
 from docker.models.resource import Model
@@ -33,7 +34,8 @@ class DockerNdpDaemonTest(unittest.TestCase):
         try:
             DockerNdpDaemon("socket", "ethernet")
             self.fail("ValueError expected")
-        except ValueError:
+        except DaemonException as ex:
+            logger.info("{}: {}".format(ex.__class__, ex))
             self.assertTrue(mock_activate_proxy.called)
             self.assertTrue(mock_client.called)
 
@@ -70,7 +72,8 @@ class DockerNdpDaemonTest(unittest.TestCase):
         try:
             self._daemon._add_container_to_ipv6_ndp_proxy(Container())
             self.fail("ValueError expected")
-        except ValueError:
+        except DaemonException as ex:
+            logger.info("{}: {}".format(ex.__class__, ex))
             self.assertTrue(mock_add_proxy.called)
             self.assertTrue(mock_add_ip.called)
 
@@ -97,7 +100,8 @@ class DockerNdpDaemonTest(unittest.TestCase):
         try:
             self._daemon._try_fetch_ipv6_address(mock_container)
             self.fail("ValueError expected!")
-        except ValueError:
+        except DaemonException as ex:
+            logger.info("{}: {}".format(ex.__class__, ex))
             self.assertTrue(mock_ipv6_address.called)
 
     @mock.patch.object(Popen, 'communicate', return_value=(bytearray("\n", "utf-8"), bytearray("\n", "utf-8")))

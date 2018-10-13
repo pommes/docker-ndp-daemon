@@ -1,5 +1,6 @@
 import logging
 from .events import DockerEventDaemon
+from .exceptions import DaemonException
 from subprocess import Popen, PIPE
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class DockerNdpDaemon(DockerEventDaemon):
 
         rval, cmd, stderr = self._activate_ndp_proxy()
         if rval != 0:
-            raise (ValueError("{} returned with code '{}': '{}'".format(cmd, rval, stderr)))
+            raise (DaemonException("{} returned with code '{}': '{}'".format(cmd, rval, stderr)))
 
         self._add_all_existing_containers_to_neigh_proxy()
         self.listen_network_connect_events()
@@ -44,7 +45,7 @@ class DockerNdpDaemon(DockerEventDaemon):
 
         rval, cmd, stderr = self._add_ipv6_neigh_proxy(ipv6_address)
         if rval != 0:
-            raise (ValueError("{} returned with code '{}': '{}'".format(cmd, rval, stderr)))
+            raise (DaemonException("{} returned with code '{}': '{}'".format(cmd, rval, stderr)))
 
         logger.info("Setting IPv6 ndp proxy for container '{}': '{}'".format(container.name, cmd))
 
@@ -53,7 +54,7 @@ class DockerNdpDaemon(DockerEventDaemon):
         # Adds the passed container to the ipv6 neighbour discovery proxy
         rval, ipv6_address, stderr = DockerNdpDaemon.fetch_ipv6_address(container)
         if rval != 0:
-            raise (ValueError("Fetching IPv6 address for container '{}' returned with code '{}': '{}'"
+            raise (DaemonException("Fetching IPv6 address for container '{}' returned with code '{}': '{}'"
                    .format(container.name, rval, stderr)))
 
         if not ipv6_address:

@@ -3,6 +3,7 @@ from docker import DockerClient
 import json
 import signal
 from subprocess import Popen, PIPE
+from daemon.exceptions import DaemonException
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class DockerEventDaemon:
         logger.info("Connecting ...")
         self._client = self.init_docker_client()
         if not self._client:
-            raise(ValueError("Unable to connect."))
+            raise(DaemonException("Unable to connect."))
 
     def init_docker_client(self):
         """
@@ -74,7 +75,7 @@ class DockerEventDaemon:
             if self._terminate:
                 logger.warning("Error during termination: {}".format(ex))
             else:
-                raise ex
+                raise DaemonException(parent=ex)
 
     def shutdown(self):
         """shuts down the daemon."""

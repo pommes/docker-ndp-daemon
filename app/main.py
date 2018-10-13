@@ -1,8 +1,9 @@
 def init_app():
     import sys
     import logging
-    from daemon import DockerNdpDaemon
     from urllib3.exceptions import ReadTimeoutError
+    from daemon import DockerNdpDaemon
+    from daemon import DaemonException
 
     logger = logging.getLogger(__name__)
     daemon = None
@@ -25,9 +26,13 @@ def init_app():
         init_app()
         return()
 
-    except Exception as ex:
+    except DaemonException as ex:
         logger.critical("CRITICAL: {}".format(ex))
         sys.exit(1)
+
+    except Exception as ex:
+        logger.critical("CRITICAL: Unexpected exception '{}' catched - possible bug: {}".format(ex.__class__, ex))
+        sys.exit(2)
 
 
 if __name__ == "__main__":

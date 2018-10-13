@@ -6,6 +6,7 @@ from docker.errors import DockerException
 from subprocess import Popen
 import signal
 from daemon.events import DockerEventDaemon
+from daemon.exceptions import DaemonException
 import config
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class DockerEventDaemonTest(unittest.TestCase):
     def test_init__fail__docker_client_is_none(self):
         try:
             DockerEventDaemon("socket")
-        except ValueError as ex:
+        except DaemonException as ex:
             logger.info("{}: {}".format(ex.__class__, ex))
             return
 
@@ -74,11 +75,21 @@ class DockerEventDaemonTest(unittest.TestCase):
                          "Only 2 of the 3 client are of Type 'network' and Action 'connect'.)")
 
     @mock.patch.object(DockerClient, 'events', side_effect=error_during_terminate)
-    def test_listen_network_connect_events__fail(self, mock_events):
+    def test_listen_network_connect_events__fail_exception(self, mock_events):
         try:
             self._daemon.listen_network_connect_events()
             self.fail("Exception expected.")
-        except ValueError:
+        except DaemonException as ex:
+            logger.info("{}: {}".format(ex.__class__, ex))
+            pass
+
+    @mock.patch.object(DockerClient, 'events', side_effect=error_during_terminate)
+    def test_listen_network_connect_events__fail_timeout(self, mock_events):
+        try:
+            self._daemon.listen_network_connect_events()
+            self.fail("Exception expected.")
+        except DaemonException as ex:
+            logger.info("{}: {}".format(ex.__class__, ex))
             pass
 
     @mock.patch('docker.models.containers.Container')
